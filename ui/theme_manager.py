@@ -37,23 +37,40 @@ DEFAULT_THEMES = {
     },
     "dark": {
         "name": "Dark",
-        "description": "Default dark theme",
+        "description": "Default dark theme with Mica-like effect",
         "colors": {
-            "background": "#212529",
-            "foreground": "#f8f9fa",
-            "accent": "#007bff",
-            "secondary": "#adb5bd",
+            "background": "#1A1F2C",  # Dark background
+            "foreground": "#FFFFFF",   # White text
+            "accent": "#9b87f5",       # Purple accent
+            "secondary": "#7E69AB",    # Secondary purple
             "success": "#28a745",
             "danger": "#dc3545",
             "warning": "#ffc107",
             "info": "#17a2b8",
-            "border": "#495057",
-            "highlight": "#343a40"
+            "border": "#3C3C3C",       # Darker border
+            "highlight": "#2C2C2C"     # Slightly lighter than background for highlights
         },
         "fonts": {
             "main": ("Segoe UI", 10),
             "title": ("Segoe UI", 12, "bold"),
             "monospace": ("Consolas", 10)
+        },
+        "styles": {
+            "Modern.TFrame": {"background": "#1A1F2C"},
+            "Modern.TButton": {"background": "#9b87f5", "foreground": "#FFFFFF"},
+            "Modern.TLabel": {"background": "#1A1F2C", "foreground": "#FFFFFF"},
+            "Modern.Title.TLabel": {"background": "#1A1F2C", "foreground": "#FFFFFF", "font": ("Segoe UI", 12, "bold")},
+            "Modern.TEntry": {"fieldbackground": "#2C2C2C", "foreground": "#FFFFFF"},
+            "Modern.TSpinbox": {"fieldbackground": "#2C2C2C", "foreground": "#FFFFFF"},
+            "Modern.TLabelframe": {"background": "#1A1F2C", "foreground": "#FFFFFF"},
+            "Status.TLabel": {"background": "#2C2C2C", "foreground": "#AAAAAA"},
+            "Toolbar.TFrame": {"background": "#2C2C2C"},
+            "Modern.TCheckbutton": {"background": "#1A1F2C", "foreground": "#FFFFFF"},
+            "Modern.TRadiobutton": {"background": "#1A1F2C", "foreground": "#FFFFFF"},
+            "Modern.Horizontal.TScale": {"background": "#1A1F2C"},
+            "Modern.Vertical.TScrollbar": {"background": "#1A1F2C", "troughcolor": "#2C2C2C", "arrowcolor": "#FFFFFF"},
+            "Indicator.TFrame": {"background": "#9b87f5"},
+            "Modern.MenuButton.TButton": {"background": "#1A1F2C", "foreground": "#FFFFFF"}
         }
     },
     "high_contrast": {
@@ -75,6 +92,23 @@ DEFAULT_THEMES = {
             "main": ("Segoe UI", 12),
             "title": ("Segoe UI", 14, "bold"),
             "monospace": ("Consolas", 12)
+        },
+        "styles": {
+            "Modern.TFrame": {"background": "#000000"},
+            "Modern.TButton": {"background": "#FFFFFF", "foreground": "#000000"},
+            "Modern.TLabel": {"background": "#000000", "foreground": "#FFFFFF"},
+            "Modern.Title.TLabel": {"background": "#000000", "foreground": "#FFFF00", "font": ("Segoe UI", 14, "bold")},
+            "Modern.TEntry": {"fieldbackground": "#000000", "foreground": "#FFFFFF"},
+            "Modern.TSpinbox": {"fieldbackground": "#000000", "foreground": "#FFFFFF"},
+            "Modern.TLabelframe": {"background": "#000000", "foreground": "#FFFFFF"},
+            "Status.TLabel": {"background": "#000000", "foreground": "#FFFFFF"},
+            "Toolbar.TFrame": {"background": "#000000"},
+            "Modern.TCheckbutton": {"background": "#000000", "foreground": "#FFFFFF"},
+            "Modern.TRadiobutton": {"background": "#000000", "foreground": "#FFFFFF"},
+            "Modern.Horizontal.TScale": {"background": "#000000"},
+            "Modern.Vertical.TScrollbar": {"background": "#000000", "troughcolor": "#444444", "arrowcolor": "#FFFFFF"},
+            "Indicator.TFrame": {"background": "#FFFF00"},
+            "Modern.MenuButton.TButton": {"background": "#000000", "foreground": "#FFFFFF"}
         }
     }
 }
@@ -94,7 +128,7 @@ class ThemeManager:
         """
         self.themes_dir = themes_dir
         self.themes = DEFAULT_THEMES.copy()
-        self.current_theme = "light"  # Default theme
+        self.current_theme = "dark"  # Default to dark theme
         self.ttk_style = None
         
         # Ensure themes directory exists
@@ -174,8 +208,8 @@ class ThemeManager:
             is_dark = darkdetect.isDark()
             return "dark" if is_dark else "light"
         except ImportError:
-            logger.warning("darkdetect not available, defaulting to light theme")
-            return "light"
+            logger.warning("darkdetect not available, defaulting to dark theme")
+            return "dark"  # Change default to dark theme
             
     def initialize_ttk_style(self, root: tk.Tk) -> None:
         """
@@ -185,7 +219,94 @@ class ThemeManager:
             root: Root Tk instance
         """
         self.ttk_style = ttk.Style(root)
+        
+        # Define custom styles
+        self._define_custom_styles()
+        
+        # Apply theme
         self.apply_theme(self.current_theme)
+        
+    def _define_custom_styles(self) -> None:
+        """Define custom ttk styles used by the application"""
+        if not self.ttk_style:
+            return
+            
+        # Create modern button style
+        self.ttk_style.configure(
+            "Modern.TButton",
+            padding=(10, 5),
+            relief="flat",
+            borderwidth=0
+        )
+        self.ttk_style.map(
+            "Modern.TButton",
+            background=[("active", "#7E69AB"), ("pressed", "#6c59a1")]
+        )
+        
+        # Create menu button style
+        self.ttk_style.configure(
+            "Modern.MenuButton.TButton", 
+            padding=(10, 5),
+            relief="flat",
+            borderwidth=0
+        )
+        self.ttk_style.map(
+            "Modern.MenuButton.TButton",
+            background=[("active", "#2C2C2C"), ("pressed", "#3C3C3C")]
+        )
+        
+        # Create title label style
+        self.ttk_style.configure(
+            "Modern.Title.TLabel",
+            font=("Segoe UI", 12, "bold")
+        )
+        
+        # Create status label style
+        self.ttk_style.configure(
+            "Status.TLabel",
+            padding=(5, 2),
+            relief="flat"
+        )
+        
+        # Define modern scale style
+        self.ttk_style.configure(
+            "Modern.Horizontal.TScale",
+            sliderthickness=20,
+            sliderlength=15
+        )
+        
+        # Create modern entry style
+        self.ttk_style.configure(
+            "Modern.TEntry",
+            padding=(5, 5),
+            borderwidth=1
+        )
+        
+        # Create modern spinbox style
+        self.ttk_style.configure(
+            "Modern.TSpinbox",
+            padding=(5, 5),
+            borderwidth=1
+        )
+        
+        # Create modern labelframe style
+        self.ttk_style.configure(
+            "Modern.TLabelframe",
+            padding=10,
+            relief="flat",
+            borderwidth=1
+        )
+        self.ttk_style.configure(
+            "Modern.TLabelframe.Label",
+            font=("Segoe UI", 10, "bold")
+        )
+        
+        # Create indicator frame style
+        self.ttk_style.configure(
+            "Indicator.TFrame",
+            relief="flat",
+            borderwidth=0
+        )
         
     def apply_theme(self, theme_id: str) -> bool:
         """
@@ -239,6 +360,7 @@ class ThemeManager:
         """
         colors = theme.get("colors", {})
         fonts = theme.get("fonts", {})
+        styles = theme.get("styles", {})
         
         # Configure the base style
         self.ttk_style.configure(
@@ -278,8 +400,11 @@ class ThemeManager:
             background=colors.get("background")
         )
         
-        # Add more widget styles as needed
-        
+        # Apply custom styles from theme if available
+        if styles:
+            for style_name, style_options in styles.items():
+                self.ttk_style.configure(style_name, **style_options)
+                
     def _configure_tk_colors(self, theme: Dict) -> None:
         """
         Configure colors for regular tk widgets
@@ -356,3 +481,4 @@ class ThemeManager:
         else:
             logger.warning(f"Theme file not found: {theme_id}")
             return True  # Still successful since theme is gone
+

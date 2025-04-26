@@ -15,15 +15,19 @@ DEFAULT_SETTINGS = {
         "clipboard_poll_interval": 0.5,
         "start_minimized": False,
         "start_with_system": False,
-        "confirm_delete": True
+        "confirm_delete": True,
+        "hide_after_paste": True,
+        "minimize_to_tray_on_close": True,
+        "last_used_to_top": True
     },
     "ui": {
-        "theme": "system",
+        "theme": "dark",  # Changed to dark by default
         "language": "en",
-        "opacity": 1.0,
+        "opacity": 0.98,  # Slightly transparent for Mica effect
         "always_on_top": False,
         "show_timestamps": True,
-        "font_size": 12
+        "font_size": 12,
+        "enable_auto_collapse": True
     },
     "hotkeys": {
         "toggle_visibility": "ctrl+shift+c",
@@ -37,6 +41,9 @@ DEFAULT_SETTINGS = {
         "encrypt_sensitive": False,
         "encrypt_key": "",
         "auto_clear_passwords": True
+    },
+    "notes": {
+        "items": []
     }
 }
 
@@ -192,3 +199,4 @@ class Settings:
             self.settings[section] = DEFAULT_SETTINGS[section].copy()
             self.save()
             logger.info(f"Section {section} reset to defaults")
+
