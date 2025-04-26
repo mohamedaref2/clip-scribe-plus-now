@@ -59,7 +59,7 @@ class ClipScribeApp:
         
         # Initialize theme
         self.theme_manager.initialize_ttk_style(self.root)
-        theme = self.settings.get("ui", "theme", "system")
+        theme = self.settings.get("ui", "theme", "dark")
         self.theme_manager.apply_theme(theme)
         
         # Create main window
@@ -67,6 +67,9 @@ class ClipScribeApp:
         
         # Create system tray icon
         self.tray_icon = TrayIcon(self)
+        
+        # Windows list for multi-window support
+        self.windows = [self.main_window]
         
         # Start services
         self._start_services()
@@ -113,6 +116,14 @@ class ClipScribeApp:
             "Paste last clipboard item"
         )
         
+        # New window hotkey
+        new_window_key = self.settings.get("hotkeys", "new_window", "ctrl+shift+n")
+        self.hotkey_manager.register_hotkey(
+            new_window_key,
+            lambda: self.create_new_window(),
+            "Create new ClipScribe window"
+        )
+        
     def _load_plugins(self) -> None:
         """Load and initialize plugins"""
         try:
@@ -153,8 +164,30 @@ class ClipScribeApp:
                 keyboard.press('v')
                 keyboard.release('v')
                 keyboard.release(Key.ctrl)
+                
+                # Hide window after paste if enabled
+                if self.settings.get("general", "hide_after_paste", True):
+                    self.hide()
             except Exception as e:
                 logger.error(f"Error simulating paste: {str(e)}")
+    
+    def create_new_window(self) -> None:
+        """Create a new ClipScribe window"""
+        try:
+            # Create new Toplevel window
+            new_window = tk.Toplevel(self.root)
+            new_window.withdraw()  # Hide until fully configured
+            
+            # Create new MainWindow instance
+            window = MainWindow(self, new_window)
+            self.windows.append(window)
+            
+            # Show the new window
+            window.show()
+            
+            logger.info("Created new ClipScribe window")
+        except Exception as e:
+            logger.error(f"Error creating new window: {str(e)}")
                 
     def on_close(self) -> None:
         """Handle application close event"""
@@ -190,11 +223,13 @@ class ClipScribeApp:
             self.plugin_manager.shutdown()
             
             # Remove tray icon
-            if self.tray_icon:
+            if hasattr(self, 'tray_icon') and self.tray_icon:
                 self.tray_icon.remove()
                 
-            # Destroy main window
-            self.main_window.destroy()
+            # Close all windows
+            for window in self.windows:
+                if window:
+                    window.destroy()
             
             # Destroy root
             self.root.quit()

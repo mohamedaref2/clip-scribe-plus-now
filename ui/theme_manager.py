@@ -33,22 +33,40 @@ DEFAULT_THEMES = {
             "main": ("Segoe UI", 10),
             "title": ("Segoe UI", 12, "bold"),
             "monospace": ("Consolas", 10)
+        },
+        "styles": {
+            "Modern.TFrame": {"background": "#f0f0f0"},
+            "Modern.TButton": {"background": "#007bff", "foreground": "#FFFFFF"},
+            "Modern.TLabel": {"background": "#f0f0f0", "foreground": "#333333"},
+            "Modern.Title.TLabel": {"background": "#f0f0f0", "foreground": "#333333", "font": ("Segoe UI", 12, "bold")},
+            "Modern.TEntry": {"fieldbackground": "#FFFFFF", "foreground": "#333333"},
+            "Modern.TSpinbox": {"fieldbackground": "#FFFFFF", "foreground": "#333333"},
+            "Modern.TLabelframe": {"background": "#f0f0f0", "foreground": "#333333"},
+            "Status.TLabel": {"background": "#e9ecef", "foreground": "#555555"},
+            "Toolbar.TFrame": {"background": "#e9ecef"},
+            "Modern.TCheckbutton": {"background": "#f0f0f0", "foreground": "#333333"},
+            "Modern.TRadiobutton": {"background": "#f0f0f0", "foreground": "#333333"},
+            "Modern.Horizontal.TScale": {"background": "#f0f0f0"},
+            "Modern.Vertical.TScrollbar": {"background": "#f0f0f0", "troughcolor": "#e9ecef", "arrowcolor": "#333333"},
+            "Indicator.TFrame": {"background": "#007bff"},
+            "Modern.MenuButton.TButton": {"background": "#f0f0f0", "foreground": "#333333"},
+            "Context.TMenu": {"background": "#FFFFFF", "foreground": "#333333"}
         }
     },
     "dark": {
         "name": "Dark",
-        "description": "Default dark theme with Mica-like effect",
+        "description": "Dark theme with Mica-like effect",
         "colors": {
-            "background": "#1A1F2C",  # Dark background
-            "foreground": "#FFFFFF",   # White text
-            "accent": "#9b87f5",       # Purple accent
-            "secondary": "#7E69AB",    # Secondary purple
+            "background": "#1A1F2C",     # Darker background
+            "foreground": "#FFFFFF",      # White text
+            "accent": "#9b87f5",          # Purple accent
+            "secondary": "#7E69AB",       # Secondary purple
             "success": "#28a745",
             "danger": "#dc3545",
             "warning": "#ffc107",
             "info": "#17a2b8",
-            "border": "#3C3C3C",       # Darker border
-            "highlight": "#2C2C2C"     # Slightly lighter than background for highlights
+            "border": "#3C3C3C",          # Darker border
+            "highlight": "#2C2C2C"        # Slightly lighter than background for highlights
         },
         "fonts": {
             "main": ("Segoe UI", 10),
@@ -60,8 +78,8 @@ DEFAULT_THEMES = {
             "Modern.TButton": {"background": "#9b87f5", "foreground": "#FFFFFF"},
             "Modern.TLabel": {"background": "#1A1F2C", "foreground": "#FFFFFF"},
             "Modern.Title.TLabel": {"background": "#1A1F2C", "foreground": "#FFFFFF", "font": ("Segoe UI", 12, "bold")},
-            "Modern.TEntry": {"fieldbackground": "#2C2C2C", "foreground": "#FFFFFF"},
-            "Modern.TSpinbox": {"fieldbackground": "#2C2C2C", "foreground": "#FFFFFF"},
+            "Modern.TEntry": {"fieldbackground": "#2C2C2C", "foreground": "#FFFFFF", "insertcolor": "#FFFFFF"},
+            "Modern.TSpinbox": {"fieldbackground": "#2C2C2C", "foreground": "#FFFFFF", "insertcolor": "#FFFFFF"},
             "Modern.TLabelframe": {"background": "#1A1F2C", "foreground": "#FFFFFF"},
             "Status.TLabel": {"background": "#2C2C2C", "foreground": "#AAAAAA"},
             "Toolbar.TFrame": {"background": "#2C2C2C"},
@@ -70,7 +88,8 @@ DEFAULT_THEMES = {
             "Modern.Horizontal.TScale": {"background": "#1A1F2C"},
             "Modern.Vertical.TScrollbar": {"background": "#1A1F2C", "troughcolor": "#2C2C2C", "arrowcolor": "#FFFFFF"},
             "Indicator.TFrame": {"background": "#9b87f5"},
-            "Modern.MenuButton.TButton": {"background": "#1A1F2C", "foreground": "#FFFFFF"}
+            "Modern.MenuButton.TButton": {"background": "#1A1F2C", "foreground": "#FFFFFF"},
+            "Context.TMenu": {"background": "#2C2C2C", "foreground": "#FFFFFF", "activebackground": "#3C3C3C", "activeforeground": "#FFFFFF"}
         }
     },
     "high_contrast": {
@@ -98,8 +117,8 @@ DEFAULT_THEMES = {
             "Modern.TButton": {"background": "#FFFFFF", "foreground": "#000000"},
             "Modern.TLabel": {"background": "#000000", "foreground": "#FFFFFF"},
             "Modern.Title.TLabel": {"background": "#000000", "foreground": "#FFFF00", "font": ("Segoe UI", 14, "bold")},
-            "Modern.TEntry": {"fieldbackground": "#000000", "foreground": "#FFFFFF"},
-            "Modern.TSpinbox": {"fieldbackground": "#000000", "foreground": "#FFFFFF"},
+            "Modern.TEntry": {"fieldbackground": "#000000", "foreground": "#FFFFFF", "insertcolor": "#FFFFFF"},
+            "Modern.TSpinbox": {"fieldbackground": "#000000", "foreground": "#FFFFFF", "insertcolor": "#FFFFFF"},
             "Modern.TLabelframe": {"background": "#000000", "foreground": "#FFFFFF"},
             "Status.TLabel": {"background": "#000000", "foreground": "#FFFFFF"},
             "Toolbar.TFrame": {"background": "#000000"},
@@ -108,7 +127,8 @@ DEFAULT_THEMES = {
             "Modern.Horizontal.TScale": {"background": "#000000"},
             "Modern.Vertical.TScrollbar": {"background": "#000000", "troughcolor": "#444444", "arrowcolor": "#FFFFFF"},
             "Indicator.TFrame": {"background": "#FFFF00"},
-            "Modern.MenuButton.TButton": {"background": "#000000", "foreground": "#FFFFFF"}
+            "Modern.MenuButton.TButton": {"background": "#000000", "foreground": "#FFFFFF"},
+            "Context.TMenu": {"background": "#000000", "foreground": "#FFFFFF", "activebackground": "#444444", "activeforeground": "#FFFF00"}
         }
     }
 }
@@ -130,6 +150,7 @@ class ThemeManager:
         self.themes = DEFAULT_THEMES.copy()
         self.current_theme = "dark"  # Default to dark theme
         self.ttk_style = None
+        self.root = None
         
         # Ensure themes directory exists
         os.makedirs(themes_dir, exist_ok=True)
@@ -218,6 +239,7 @@ class ThemeManager:
         Args:
             root: Root Tk instance
         """
+        self.root = root
         self.ttk_style = ttk.Style(root)
         
         # Define custom styles
@@ -238,10 +260,6 @@ class ThemeManager:
             relief="flat",
             borderwidth=0
         )
-        self.ttk_style.map(
-            "Modern.TButton",
-            background=[("active", "#7E69AB"), ("pressed", "#6c59a1")]
-        )
         
         # Create menu button style
         self.ttk_style.configure(
@@ -249,10 +267,6 @@ class ThemeManager:
             padding=(10, 5),
             relief="flat",
             borderwidth=0
-        )
-        self.ttk_style.map(
-            "Modern.MenuButton.TButton",
-            background=[("active", "#2C2C2C"), ("pressed", "#3C3C3C")]
         )
         
         # Create title label style
@@ -345,6 +359,9 @@ class ThemeManager:
             # Configure colors for regular tk widgets
             self._configure_tk_colors(theme)
             
+            # Apply Mica effect if on Windows 11
+            self._apply_mica_effect()
+            
             logger.info(f"Theme applied: {theme.get('name', theme_id)}")
             return True
         except Exception as e:
@@ -380,13 +397,13 @@ class ThemeManager:
         self.ttk_style.configure(
             "TButton",
             background=colors.get("accent"),
-            foreground=colors.get("background")
+            foreground=colors.get("foreground")
         )
         
         self.ttk_style.map(
             "TButton",
             background=[("active", colors.get("secondary"))],
-            foreground=[("active", colors.get("background"))]
+            foreground=[("active", colors.get("foreground"))]
         )
         
         self.ttk_style.configure(
@@ -405,6 +422,24 @@ class ThemeManager:
             for style_name, style_options in styles.items():
                 self.ttk_style.configure(style_name, **style_options)
                 
+                # Apply style maps if needed
+                if style_name == "Modern.TButton":
+                    self.ttk_style.map(
+                        style_name,
+                        background=[
+                            ("active", colors.get("secondary")), 
+                            ("pressed", self._lighten_color(colors.get("secondary"), -0.1))
+                        ]
+                    )
+                elif style_name == "Modern.MenuButton.TButton":
+                    self.ttk_style.map(
+                        style_name,
+                        background=[
+                            ("active", colors.get("highlight")), 
+                            ("pressed", self._lighten_color(colors.get("highlight"), 0.1))
+                        ]
+                    )
+                
     def _configure_tk_colors(self, theme: Dict) -> None:
         """
         Configure colors for regular tk widgets
@@ -412,14 +447,90 @@ class ThemeManager:
         Args:
             theme: Theme data dictionary
         """
-        # This would apply to all windows/widgets created after this point
-        # For existing widgets, they would need to be updated individually
+        if not self.root:
+            return
+            
         colors = theme.get("colors", {})
-        tk.ACTIVE_BACKGROUND = colors.get("accent")
-        tk.ACTIVE_FOREGROUND = colors.get("background")
-        tk.BACKGROUND = colors.get("background")
-        tk.FOREGROUND = colors.get("foreground")
         
+        # Update option database for new widgets
+        self.root.option_add("*Background", colors.get("background"))
+        self.root.option_add("*Foreground", colors.get("foreground"))
+        self.root.option_add("*selectBackground", colors.get("accent"))
+        self.root.option_add("*selectForeground", colors.get("background"))
+        self.root.option_add("*Menu.Background", colors.get("highlight"))
+        self.root.option_add("*Menu.Foreground", colors.get("foreground"))
+        self.root.option_add("*Menu.selectBackground", colors.get("accent"))
+        self.root.option_add("*Menu.selectForeground", colors.get("background"))
+        
+    def _apply_mica_effect(self) -> None:
+        """Apply Mica effect on Windows 11"""
+        if not self.root:
+            return
+            
+        try:
+            import ctypes
+            import platform
+            
+            # Check if running on Windows 11
+            if platform.system() == "Windows" and int(platform.version().split('.')[0]) >= 10:
+                # Get window handle
+                hwnd = ctypes.windll.user32.GetParent(self.root.winfo_id())
+                
+                # Constants for Windows 11 Mica effect
+                DWMWA_USE_IMMERSIVE_DARK_MODE = 20
+                DWMWA_MICA_EFFECT = 1029
+                
+                # Set dark mode for title bar (required for Mica)
+                if self.current_theme == "dark":
+                    ctypes.windll.dwmapi.DwmSetWindowAttribute(
+                        hwnd, 
+                        DWMWA_USE_IMMERSIVE_DARK_MODE,
+                        ctypes.byref(ctypes.c_int(1)), 
+                        ctypes.sizeof(ctypes.c_int)
+                    )
+                
+                # Apply Mica effect
+                ctypes.windll.dwmapi.DwmSetWindowAttribute(
+                    hwnd,
+                    DWMWA_MICA_EFFECT,
+                    ctypes.byref(ctypes.c_int(1)),
+                    ctypes.sizeof(ctypes.c_int)
+                )
+                
+                logger.info("Applied Mica effect to window")
+        except Exception as e:
+            logger.warning(f"Could not apply Mica effect: {str(e)}")
+    
+    def _lighten_color(self, color_hex: str, amount: float = 0.2) -> str:
+        """
+        Lighten or darken a hex color
+        
+        Args:
+            color_hex: Hex color string (e.g. '#RRGGBB')
+            amount: Amount to lighten (positive) or darken (negative)
+            
+        Returns:
+            Modified hex color string
+        """
+        if not color_hex or not color_hex.startswith('#'):
+            return color_hex
+            
+        try:
+            # Convert hex to RGB
+            r = int(color_hex[1:3], 16)
+            g = int(color_hex[3:5], 16)
+            b = int(color_hex[5:7], 16)
+            
+            # Adjust values
+            r = max(0, min(255, int(r + (255 * amount))))
+            g = max(0, min(255, int(g + (255 * amount))))
+            b = max(0, min(255, int(b + (255 * amount))))
+            
+            # Convert back to hex
+            return f'#{r:02x}{g:02x}{b:02x}'
+        except Exception:
+            return color_hex
+            
     def create_theme(self, theme_id: str, theme_data: Dict) -> bool:
         """
         Create a new theme
@@ -481,4 +592,3 @@ class ThemeManager:
         else:
             logger.warning(f"Theme file not found: {theme_id}")
             return True  # Still successful since theme is gone
-

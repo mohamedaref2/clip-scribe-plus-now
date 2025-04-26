@@ -18,21 +18,30 @@ DEFAULT_SETTINGS = {
         "confirm_delete": True,
         "hide_after_paste": True,
         "minimize_to_tray_on_close": True,
-        "last_used_to_top": True
+        "last_used_to_top": True,
+        "allow_window_maximize": False,  # New option to control window maximization
+        "auto_collapse": {
+            "enabled": True,
+            "position": "right",  # top, bottom, right, left
+            "delay_seconds": 1.5
+        }
     },
     "ui": {
-        "theme": "dark",  # Changed to dark by default
+        "theme": "dark",  # Default to dark theme
         "language": "en",
         "opacity": 0.98,  # Slightly transparent for Mica effect
         "always_on_top": False,
         "show_timestamps": True,
         "font_size": 12,
-        "enable_auto_collapse": True
+        "enable_auto_collapse": True,
+        "modern_menu": True,  # New option for modern menu styling
+        "show_menu_bar": False  # Hide traditional menu bar by default
     },
     "hotkeys": {
         "toggle_visibility": "ctrl+shift+c",
         "paste_last_item": "ctrl+shift+v",
-        "clear_history": "ctrl+shift+x"
+        "clear_history": "ctrl+shift+x",
+        "new_window": "ctrl+shift+n"  # New hotkey for creating a new window
     },
     "plugins": {
         "enabled": []
@@ -43,7 +52,8 @@ DEFAULT_SETTINGS = {
         "auto_clear_passwords": True
     },
     "notes": {
-        "items": []
+        "items": [],
+        "sticky_items": []
     }
 }
 
@@ -200,3 +210,176 @@ class Settings:
             self.save()
             logger.info(f"Section {section} reset to defaults")
 
+    # Notes management methods
+    def add_note(self, note_data: Dict) -> bool:
+        """
+        Add a new note
+        
+        Args:
+            note_data: Note data dictionary with content, timestamp, etc.
+            
+        Returns:
+            bool: True if added successfully
+        """
+        if "notes" not in self.settings:
+            self.settings["notes"] = {"items": [], "sticky_items": []}
+            
+        self.settings["notes"]["items"].append(note_data)
+        return self.save()
+        
+    def get_notes(self) -> list:
+        """
+        Get all notes
+        
+        Returns:
+            List of notes
+        """
+        return self.settings.get("notes", {}).get("items", [])
+        
+    def get_sticky_notes(self) -> list:
+        """
+        Get sticky notes
+        
+        Returns:
+            List of sticky notes
+        """
+        return self.settings.get("notes", {}).get("sticky_items", [])
+        
+    def toggle_note_sticky(self, note_id: str) -> bool:
+        """
+        Toggle whether a note is sticky
+        
+        Args:
+            note_id: ID of the note
+            
+        Returns:
+            bool: New sticky state
+        """
+        found = False
+        note_data = None
+        
+        # Look for note in regular items
+        for note in self.settings["notes"]["items"]:
+            if note.get("id") == note_id:
+                found = True
+                note_data = note
+                self.settings["notes"]["items"].remove(note)
+                self.settings["notes"]["sticky_items"].append(note)
+                break
+                
+        # If not found in regular items, check sticky items
+        if not found:
+            for note in self.settings["notes"]["sticky_items"]:
+                if note.get("id") == note_id:
+                    found = True
+                    note_data = note
+                    self.settings["notes"]["sticky_items"].remove(note)
+                    self.settings["notes"]["items"].append(note)
+                    break
+                    
+        if found and note_data:
+            self.save()
+            return note_id in [n.get("id") for n in self.settings["notes"]["sticky_items"]]
+            
+        return False
+        
+    def move_note(self, note_id: str, direction: str) -> bool:
+        """
+        Move a note up, down, top or bottom
+        
+        Args:
+            note_id: ID of the note
+            direction: Direction to move (up, down, top, bottom)
+            
+        Returns:
+            bool: True if moved successfully
+        """
+        # Determine which list contains the note
+        container = None
+        note_index = -1
+        note_data = None
+        
+        # Check regular items
+        for i, note in enumerate(self.settings["notes"]["items"]):
+            if note.get("id") == note_id:
+                container = self.settings["notes"]["items"]
+                note_index = i
+                note_data = note
+                break
+                
+        # Check sticky items if not found
+        if note_index == -1:
+            for i, note in enumerate(self.settings["notes"]["sticky_items"]):
+                if note.get("id") == note_id:
+                    container = self.settings["notes"]["sticky_items"]
+                    note_index = i
+                    note_data = note
+                    break
+                    
+        # If note was found, move it
+        if container and note_index >= 0 and note_data:
+            container.pop(note_index)
+            
+            if direction == "up" and note_index > 0:
+                container.insert(note_index - 1, note_data)
+            elif direction == "down" and note_index < len(container):
+                container.insert(note_index + 1, note_data)
+            elif direction == "top":
+                container.insert(0, note_data)
+            elif direction == "bottom":
+                container.append(note_data)
+            else:
+                # Invalid direction, put it back
+                container.insert(note_index, note_data)
+                return False
+                
+            self.save()
+            return True
+            
+        return False
+        
+    def update_note_used(self, note_id: str) -> bool:
+        """
+        Mark a note as recently used and move to top if setting enabled
+        
+        Args:
+            note_id: ID of the note
+            
+        Returns:
+            bool: True if updated successfully
+        """
+        # Only proceed if last_used_to_top is enabled
+        if not self.get("general", "last_used_to_top", True):
+            return False
+            
+        # Only move notes in the regular items list, not sticky
+        note_index = -1
+        note_data = None
+        
+        for i, note in enumerate(self.settings["notes"]["items"]):
+            if note.get("id") == note_id:
+                note_index = i
+                note_data = note
+                break
+                
+        if note_index >= 0 and note_data:
+            # Update the last used timestamp
+            note_data["last_used"] = {
+                "timestamp": import_time().time(),
+                "date": import_time().strftime("%Y-%m-%d %H:%M:%S")
+            }
+            
+            # Move to top
+            self.settings["notes"]["items"].pop(note_index)
+            self.settings["notes"]["items"].insert(0, note_data)
+            
+            self.save()
+            return True
+            
+        return False
+
+# Helper for time functions
+def import_time():
+    """Import time module on demand to avoid circular imports"""
+    import time
+    return time
