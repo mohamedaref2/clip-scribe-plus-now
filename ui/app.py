@@ -8,6 +8,7 @@ import threading
 import tkinter as tk
 from tkinter import messagebox
 import sys
+import uuid
 from typing import Dict, List, Optional
 
 from core.clipboard_manager import ClipboardManager
@@ -57,10 +58,8 @@ class ClipScribeApp:
             self.plugin_manager.notify_clipboard_change
         )
         
-        # Initialize theme
+        # Initialize theme - always light
         self.theme_manager.initialize_ttk_style(self.root)
-        theme = self.settings.get("ui", "theme", "dark")
-        self.theme_manager.apply_theme(theme)
         
         # Create main window
         self.main_window = MainWindow(self)
@@ -80,6 +79,9 @@ class ClipScribeApp:
         # Set up global hotkeys
         self._setup_hotkeys()
         
+        # Disable maximize button
+        self._disable_maximize()
+        
         # Determine initial visibility
         start_minimized = self.settings.get("general", "start_minimized", False)
         if not start_minimized:
@@ -88,6 +90,22 @@ class ClipScribeApp:
             self.hide()
             
         logger.info("ClipScribe Plus initialization complete")
+    
+    def _disable_maximize(self) -> None:
+        """Disable maximize button on the window"""
+        try:
+            # This is Windows-specific
+            import ctypes
+            GWL_STYLE = -16
+            WS_MAXIMIZEBOX = 0x00010000
+            
+            hwnd = self.root.winfo_id()
+            style = ctypes.windll.user32.GetWindowLongW(hwnd, GWL_STYLE)
+            style = style & ~WS_MAXIMIZEBOX
+            ctypes.windll.user32.SetWindowLongW(hwnd, GWL_STYLE, style)
+            logger.info("Maximize button disabled")
+        except Exception as e:
+            logger.error(f"Failed to disable maximize button: {str(e)}")
         
     def _start_services(self) -> None:
         """Start all background services"""
@@ -138,7 +156,93 @@ class ClipScribeApp:
             logger.info(f"Loaded {len(plugins)} plugins, enabled {len(enabled_plugins)}")
         except Exception as e:
             logger.error(f"Error loading plugins: {str(e)}")
+    
+    def add_note(self, content: str) -> bool:
+        """
+        Add a new note to settings
+        
+        Args:
+            content: Note content
             
+        Returns:
+            bool: True if added successfully
+        """
+        try:
+            import time
+            
+            note_id = str(uuid.uuid4())
+            timestamp = time.time()
+            date_str = time.strftime("%Y-%m-%d %H:%M:%S")
+            
+            note_data = {
+                "id": note_id,
+                "content": content,
+                "created": {
+                    "timestamp": timestamp,
+                    "date": date_str
+                },
+                "last_used": {
+                    "timestamp": timestamp,
+                    "date": date_str
+                }
+            }
+            
+            success = self.settings.add_note(note_data)
+            
+            if success:
+                logger.info(f"Added new note: {note_id}")
+                # Refresh the main window to show the new note
+                self.main_window.refresh_notes()
+                return True
+            else:
+                logger.error("Failed to add note")
+                return False
+                
+        except Exception as e:
+            logger.error(f"Error adding note: {str(e)}")
+            return False
+            
+    def update_note(self, note_id: str, content: str) -> bool:
+        """
+        Update an existing note
+        
+        Args:
+            note_id: ID of the note to update
+            content: New content
+            
+        Returns:
+            bool: True if updated successfully
+        """
+        try:
+            # Get all notes from settings
+            all_notes = self.settings.get_notes()
+            sticky_notes = self.settings.get_sticky_notes()
+            
+            # Look for the note in regular notes
+            for note in all_notes:
+                if note.get("id") == note_id:
+                    note["content"] = content
+                    self.settings.save()
+                    logger.info(f"Updated note: {note_id}")
+                    self.main_window.refresh_notes()
+                    return True
+                    
+            # Look for the note in sticky notes
+            for note in sticky_notes:
+                if note.get("id") == note_id:
+                    note["content"] = content
+                    self.settings.save()
+                    logger.info(f"Updated sticky note: {note_id}")
+                    self.main_window.refresh_notes()
+                    return True
+                    
+            logger.warning(f"Note not found: {note_id}")
+            return False
+                
+        except Exception as e:
+            logger.error(f"Error updating note: {str(e)}")
+            return False
+    
     def show(self) -> None:
         """Show the main application window"""
         self.main_window.show()
@@ -182,12 +286,30 @@ class ClipScribeApp:
             window = MainWindow(self, new_window)
             self.windows.append(window)
             
+            # Disable maximize on new window
+            self._disable_maximize_on_window(new_window)
+            
             # Show the new window
             window.show()
             
             logger.info("Created new ClipScribe window")
         except Exception as e:
             logger.error(f"Error creating new window: {str(e)}")
+    
+    def _disable_maximize_on_window(self, window) -> None:
+        """Disable maximize button on a window"""
+        try:
+            # This is Windows-specific
+            import ctypes
+            GWL_STYLE = -16
+            WS_MAXIMIZEBOX = 0x00010000
+            
+            hwnd = window.winfo_id()
+            style = ctypes.windll.user32.GetWindowLongW(hwnd, GWL_STYLE)
+            style = style & ~WS_MAXIMIZEBOX
+            ctypes.windll.user32.SetWindowLongW(hwnd, GWL_STYLE, style)
+        except Exception as e:
+            logger.error(f"Failed to disable maximize button on child window: {str(e)}")
                 
     def on_close(self) -> None:
         """Handle application close event"""

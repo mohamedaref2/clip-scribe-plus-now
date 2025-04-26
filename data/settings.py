@@ -5,7 +5,9 @@ Settings management module for storing and retrieving application settings.
 import json
 import logging
 import os
-from typing import Any, Dict, Optional
+import time
+import uuid
+from typing import Any, Dict, Optional, List
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +21,7 @@ DEFAULT_SETTINGS = {
         "hide_after_paste": True,
         "minimize_to_tray_on_close": True,
         "last_used_to_top": True,
-        "allow_window_maximize": False,  # New option to control window maximization
+        "allow_window_maximize": False,
         "auto_collapse": {
             "enabled": True,
             "position": "right",  # top, bottom, right, left
@@ -27,21 +29,21 @@ DEFAULT_SETTINGS = {
         }
     },
     "ui": {
-        "theme": "dark",  # Default to dark theme
+        "theme": "light",  # Only light theme is supported now
         "language": "en",
         "opacity": 0.98,  # Slightly transparent for Mica effect
         "always_on_top": False,
         "show_timestamps": True,
         "font_size": 12,
         "enable_auto_collapse": True,
-        "modern_menu": True,  # New option for modern menu styling
+        "modern_menu": True,
         "show_menu_bar": False  # Hide traditional menu bar by default
     },
     "hotkeys": {
         "toggle_visibility": "ctrl+shift+c",
         "paste_last_item": "ctrl+shift+v",
         "clear_history": "ctrl+shift+x",
-        "new_window": "ctrl+shift+n"  # New hotkey for creating a new window
+        "new_window": "ctrl+shift+n"
     },
     "plugins": {
         "enabled": []
@@ -227,7 +229,7 @@ class Settings:
         self.settings["notes"]["items"].append(note_data)
         return self.save()
         
-    def get_notes(self) -> list:
+    def get_notes(self) -> List[Dict]:
         """
         Get all notes
         
@@ -236,7 +238,7 @@ class Settings:
         """
         return self.settings.get("notes", {}).get("items", [])
         
-    def get_sticky_notes(self) -> list:
+    def get_sticky_notes(self) -> List[Dict]:
         """
         Get sticky notes
         
@@ -244,6 +246,41 @@ class Settings:
             List of sticky notes
         """
         return self.settings.get("notes", {}).get("sticky_items", [])
+        
+    def delete_note(self, note_id: str) -> bool:
+        """
+        Delete a note by ID
+        
+        Args:
+            note_id: ID of the note to delete
+            
+        Returns:
+            bool: True if deleted successfully
+        """
+        deleted = False
+        
+        # Check in regular items
+        items = self.settings["notes"]["items"]
+        for i, note in enumerate(items):
+            if note.get("id") == note_id:
+                del items[i]
+                deleted = True
+                break
+                
+        # If not found, check in sticky items
+        if not deleted:
+            items = self.settings["notes"]["sticky_items"]
+            for i, note in enumerate(items):
+                if note.get("id") == note_id:
+                    del items[i]
+                    deleted = True
+                    break
+                    
+        if deleted:
+            self.save()
+            return True
+            
+        return False
         
     def toggle_note_sticky(self, note_id: str) -> bool:
         """
@@ -365,8 +402,8 @@ class Settings:
         if note_index >= 0 and note_data:
             # Update the last used timestamp
             note_data["last_used"] = {
-                "timestamp": import_time().time(),
-                "date": import_time().strftime("%Y-%m-%d %H:%M:%S")
+                "timestamp": time.time(),
+                "date": time.strftime("%Y-%m-%d %H:%M:%S")
             }
             
             # Move to top
@@ -377,9 +414,3 @@ class Settings:
             return True
             
         return False
-
-# Helper for time functions
-def import_time():
-    """Import time module on demand to avoid circular imports"""
-    import time
-    return time

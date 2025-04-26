@@ -1,4 +1,3 @@
-
 """
 Theme manager for the application UI.
 Provides functionality to load, apply, and switch UI themes.
@@ -12,7 +11,7 @@ from typing import Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
-# Default themes
+# Default theme - Light only
 DEFAULT_THEMES = {
     "light": {
         "name": "Light",
@@ -52,84 +51,6 @@ DEFAULT_THEMES = {
             "Modern.MenuButton.TButton": {"background": "#f0f0f0", "foreground": "#333333"},
             "Context.TMenu": {"background": "#FFFFFF", "foreground": "#333333"}
         }
-    },
-    "dark": {
-        "name": "Dark",
-        "description": "Dark theme with Mica-like effect",
-        "colors": {
-            "background": "#1A1F2C",     # Darker background
-            "foreground": "#FFFFFF",      # White text
-            "accent": "#9b87f5",          # Purple accent
-            "secondary": "#7E69AB",       # Secondary purple
-            "success": "#28a745",
-            "danger": "#dc3545",
-            "warning": "#ffc107",
-            "info": "#17a2b8",
-            "border": "#3C3C3C",          # Darker border
-            "highlight": "#2C2C2C"        # Slightly lighter than background for highlights
-        },
-        "fonts": {
-            "main": ("Segoe UI", 10),
-            "title": ("Segoe UI", 12, "bold"),
-            "monospace": ("Consolas", 10)
-        },
-        "styles": {
-            "Modern.TFrame": {"background": "#1A1F2C"},
-            "Modern.TButton": {"background": "#9b87f5", "foreground": "#FFFFFF"},
-            "Modern.TLabel": {"background": "#1A1F2C", "foreground": "#FFFFFF"},
-            "Modern.Title.TLabel": {"background": "#1A1F2C", "foreground": "#FFFFFF", "font": ("Segoe UI", 12, "bold")},
-            "Modern.TEntry": {"fieldbackground": "#2C2C2C", "foreground": "#FFFFFF", "insertcolor": "#FFFFFF"},
-            "Modern.TSpinbox": {"fieldbackground": "#2C2C2C", "foreground": "#FFFFFF", "insertcolor": "#FFFFFF"},
-            "Modern.TLabelframe": {"background": "#1A1F2C", "foreground": "#FFFFFF"},
-            "Status.TLabel": {"background": "#2C2C2C", "foreground": "#AAAAAA"},
-            "Toolbar.TFrame": {"background": "#2C2C2C"},
-            "Modern.TCheckbutton": {"background": "#1A1F2C", "foreground": "#FFFFFF"},
-            "Modern.TRadiobutton": {"background": "#1A1F2C", "foreground": "#FFFFFF"},
-            "Modern.Horizontal.TScale": {"background": "#1A1F2C"},
-            "Modern.Vertical.TScrollbar": {"background": "#1A1F2C", "troughcolor": "#2C2C2C", "arrowcolor": "#FFFFFF"},
-            "Indicator.TFrame": {"background": "#9b87f5"},
-            "Modern.MenuButton.TButton": {"background": "#1A1F2C", "foreground": "#FFFFFF"},
-            "Context.TMenu": {"background": "#2C2C2C", "foreground": "#FFFFFF", "activebackground": "#3C3C3C", "activeforeground": "#FFFFFF"}
-        }
-    },
-    "high_contrast": {
-        "name": "High Contrast",
-        "description": "High contrast accessibility theme",
-        "colors": {
-            "background": "#000000",
-            "foreground": "#ffffff",
-            "accent": "#ffff00",
-            "secondary": "#ffffff",
-            "success": "#00ff00",
-            "danger": "#ff0000",
-            "warning": "#ffff00",
-            "info": "#00ffff",
-            "border": "#ffffff",
-            "highlight": "#444444"
-        },
-        "fonts": {
-            "main": ("Segoe UI", 12),
-            "title": ("Segoe UI", 14, "bold"),
-            "monospace": ("Consolas", 12)
-        },
-        "styles": {
-            "Modern.TFrame": {"background": "#000000"},
-            "Modern.TButton": {"background": "#FFFFFF", "foreground": "#000000"},
-            "Modern.TLabel": {"background": "#000000", "foreground": "#FFFFFF"},
-            "Modern.Title.TLabel": {"background": "#000000", "foreground": "#FFFF00", "font": ("Segoe UI", 14, "bold")},
-            "Modern.TEntry": {"fieldbackground": "#000000", "foreground": "#FFFFFF", "insertcolor": "#FFFFFF"},
-            "Modern.TSpinbox": {"fieldbackground": "#000000", "foreground": "#FFFFFF", "insertcolor": "#FFFFFF"},
-            "Modern.TLabelframe": {"background": "#000000", "foreground": "#FFFFFF"},
-            "Status.TLabel": {"background": "#000000", "foreground": "#FFFFFF"},
-            "Toolbar.TFrame": {"background": "#000000"},
-            "Modern.TCheckbutton": {"background": "#000000", "foreground": "#FFFFFF"},
-            "Modern.TRadiobutton": {"background": "#000000", "foreground": "#FFFFFF"},
-            "Modern.Horizontal.TScale": {"background": "#000000"},
-            "Modern.Vertical.TScrollbar": {"background": "#000000", "troughcolor": "#444444", "arrowcolor": "#FFFFFF"},
-            "Indicator.TFrame": {"background": "#FFFF00"},
-            "Modern.MenuButton.TButton": {"background": "#000000", "foreground": "#FFFFFF"},
-            "Context.TMenu": {"background": "#000000", "foreground": "#FFFFFF", "activebackground": "#444444", "activeforeground": "#FFFF00"}
-        }
     }
 }
 
@@ -148,7 +69,7 @@ class ThemeManager:
         """
         self.themes_dir = themes_dir
         self.themes = DEFAULT_THEMES.copy()
-        self.current_theme = "dark"  # Default to dark theme
+        self.current_theme = "light"  # Default to light theme only
         self.ttk_style = None
         self.root = None
         
@@ -245,8 +166,8 @@ class ThemeManager:
         # Define custom styles
         self._define_custom_styles()
         
-        # Apply theme
-        self.apply_theme(self.current_theme)
+        # Apply theme - always light
+        self.apply_theme("light")
         
     def _define_custom_styles(self) -> None:
         """Define custom ttk styles used by the application"""
@@ -332,9 +253,8 @@ class ThemeManager:
         Returns:
             bool: True if theme applied successfully, False otherwise
         """
-        # Handle "system" theme
-        if theme_id == "system":
-            theme_id = self.get_system_theme()
+        # Always use light theme
+        theme_id = "light"
             
         # Check if theme exists
         if theme_id not in self.themes:
@@ -480,14 +400,13 @@ class ThemeManager:
                 DWMWA_USE_IMMERSIVE_DARK_MODE = 20
                 DWMWA_MICA_EFFECT = 1029
                 
-                # Set dark mode for title bar (required for Mica)
-                if self.current_theme == "dark":
-                    ctypes.windll.dwmapi.DwmSetWindowAttribute(
-                        hwnd, 
-                        DWMWA_USE_IMMERSIVE_DARK_MODE,
-                        ctypes.byref(ctypes.c_int(1)), 
-                        ctypes.sizeof(ctypes.c_int)
-                    )
+                # Apply light mode for title bar (required for Mica)
+                ctypes.windll.dwmapi.DwmSetWindowAttribute(
+                    hwnd, 
+                    DWMWA_USE_IMMERSIVE_DARK_MODE,
+                    ctypes.byref(ctypes.c_int(0)), 
+                    ctypes.sizeof(ctypes.c_int)
+                )
                 
                 # Apply Mica effect
                 ctypes.windll.dwmapi.DwmSetWindowAttribute(
